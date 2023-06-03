@@ -3,4 +3,4 @@ project(HelloWorld C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(HelloWorld andOr.c)
+add_executable(HelloWorld andOr.c Matrix.c Matrix.h)

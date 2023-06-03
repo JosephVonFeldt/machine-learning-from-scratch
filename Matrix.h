@@ -18,4 +18,8 @@ struct Matrix{
     int columns;
     double** values;
 };
+void broadcastAdd(Matrix *a, Matrix *b, Matrix *out);
+void broadcastMultiply(Matrix *a, Matrix *b, Matrix *out);
+void matMultiply(Matrix *a, Matrix *b, Matrix *out);
+void inPlaceScaleMatrix(Matrix *matrix, double n);
 #endif //HELLOWORLD_MATRIX_H

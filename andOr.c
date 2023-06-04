@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "Matrix.h"
 
 typedef struct Model Model;
 float randFloat();
@@ -17,7 +18,6 @@ void train(Model *m, float rate);
 void printCurrent(Model *m);
 
 struct Model{
-
     float w00;
     float w01;
     float w10;
@@ -46,19 +46,62 @@ size_t training_size = sizeof (trainingData)/sizeof(trainingData[0]);
 int main() {
     srand(time(0));
     //srand(69);
-    float rate  = 10;
+    float rate  = 1;
     Model m;
     Model g;
     randM(&m, 1, 0);
     float c = cost(&m);
-    for (size_t i = 0; i < 100000; i++){
+    for (size_t i = 0; i < 10000000; i++){
         c = cost(&m);
-        if(i%5000 == 0) {
+        if(i%500000 == 0) {
             printCurrent(&m);
+            printf("cost = %f\n", c);
         }
         train(&m, rate);
     }
+    printCurrent(&m);
     printf("cost = %f\n", c);
+
+    return 0;
+}
+
+int main1() {
+    srand(69);
+//
+//    Matrix *m = initMatrix(3, 5);
+//    printMatrix(m);
+//    printf("\n");
+//    randomizeMatrix(m, 2, .5);
+//    printMatrix(m);
+//    deleteMatrix(m);
+
+
+    Matrix *a = initMatrix(2, 3);
+    a->values[0][0] = 1;
+    a->values[0][1] = 2;
+    a->values[0][2] = 3;
+
+    a->values[1][0] = 4;
+    a->values[1][1] = 5;
+    a->values[1][2] = 6;
+    printMatrix(a);
+    printf("\n\n");
+    Matrix *b = initMatrix(3, 2);
+    b->values[0][0] = 10;
+    b->values[0][1] = 11;
+
+    b->values[1][0] = 20;
+    b->values[1][1] = 21;
+
+    b->values[2][0] = 30;
+    b->values[2][1] = 31;
+    printMatrix(b);
+    printf("\n\n");
+    Matrix *out = initMatrix(2, 2);
+    matMultiply(a, b, out);
+    printMatrix(out);
+    inPlaceScaleMatrix(out, .01);
+    printMatrix(out);
 
     return 0;
 }
@@ -103,12 +146,12 @@ void grad(Model *m, Model *g) {
         dfw1 += temp_dbf * a1;
         dfw0 += temp_dbf * a0;
 
-        float temp_db1 = 2 * (fa-y) * fa * (1-fa) * m->fw1 * a1 * a1 * (1-a1);
+        float temp_db1 = 2 * (fa-y) * fa * (1-fa) * m->fw1 * a1 * (1-a1);
         db1 += temp_db1;
         dw11 += temp_db1 * x1;
         dw01 += temp_db1 * x0;
 
-        float temp_db0 = 2 * (fa-y) * fa * (1-fa) * m->fw0 * a0 * a0 * (1-a0);
+        float temp_db0 = 2 * (fa-y) * fa * (1-fa) * m->fw0 * a0 * (1-a0);
         db0 += temp_db0;
         dw10 += temp_db0 * x1;
         dw00 += temp_db0 * x0;

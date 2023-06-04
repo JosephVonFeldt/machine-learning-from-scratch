@@ -6,24 +6,6 @@
 #include "NeuralNetwork.h"
 
 void descend(NeuralNetwork* nn);
-//struct NeuralNetwork{
-//    int inputCount;
-//    int numLayers;
-//    int outputCount;
-//    NNLayer *inputLayer;
-//    NNLayer *outputLayer;
-//};
-//NeuralNetwork* initNetwork(int inputCount, int numLayers, int outputCount, int nodesPerLayer);
-//
-//struct NNLayer{
-//    int nodeCount;
-//    Matrix* biases;
-//    Matrix* activations;
-//    Matrix* weightsGrad;
-//    Matrix* weights;
-//    NNLayer *prevLayer;
-//    NNLayer *nextLayer;
-//};
 
 double randMax = 1.0;
 double randMin = -0.3;

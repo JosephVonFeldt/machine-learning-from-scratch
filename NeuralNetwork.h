@@ -2,8 +2,8 @@
 // Created by joeyv on 6/3/2023.
 //
 
-#ifndef HELLOWORLD_NEURALNETWORK_H
-#define HELLOWORLD_NEURALNETWORK_H
+#ifndef NeuralNets_NEURALNETWORK_H
+#define NeuralNets_NEURALNETWORK_H
 #include "Matrix.h"
 typedef struct NeuralNetwork NeuralNetwork;
 typedef struct NNLayer NNLayer;
@@ -36,4 +36,4 @@ struct NNLayer{
     NNLayer *prevLayer;
     NNLayer *nextLayer;
 };
-#endif //HELLOWORLD_NEURALNETWORK_H
+#endif //NeuralNets_NEURALNETWORK_H

@@ -2,8 +2,8 @@
 // Created by joeyv on 6/3/2023.
 //
 
-#ifndef HELLOWORLD_MATRIX_H
-#define HELLOWORLD_MATRIX_H
+#ifndef NeuralNets_MATRIX_H
+#define NeuralNets_MATRIX_H
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -25,4 +25,4 @@ void inPlaceScaleMatrix(Matrix *matrix, double n);
 void applyFunction(Matrix *matrix, double (*function)(double val));
 Matrix* getColumn(Matrix* m, int index);
 Matrix* getRow(Matrix* m, int index);
-#endif //HELLOWORLD_MATRIX_H
+#endif //NeuralNets_MATRIX_H

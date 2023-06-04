@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
 typedef struct Matrix Matrix;
 Matrix* initMatrix (int rows, int columns);
 void randomizeMatrix(Matrix* m, double maxValue, double minValue);
@@ -18,8 +17,12 @@ struct Matrix{
     int columns;
     double** values;
 };
+void copyInto(Matrix *original, Matrix *destination);
 void broadcastAdd(Matrix *a, Matrix *b, Matrix *out);
 void broadcastMultiply(Matrix *a, Matrix *b, Matrix *out);
 void matMultiply(Matrix *a, Matrix *b, Matrix *out);
 void inPlaceScaleMatrix(Matrix *matrix, double n);
+void applyFunction(Matrix *matrix, double (*function)(double val));
+Matrix* getColumn(Matrix* m, int index);
+Matrix* getRow(Matrix* m, int index);
 #endif //HELLOWORLD_MATRIX_H

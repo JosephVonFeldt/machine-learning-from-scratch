@@ -106,10 +106,58 @@ void inPlaceScaleMatrix(Matrix *matrix, double n) {
     }
 }
 
+void copyInto(Matrix *original, Matrix *destination) {
+    // Checking rows
+    assert(original->rows == destination->rows);
+    int rows = original->rows;
+
+    // Checking columns
+    assert(original->columns == destination->columns);
+    int cols = original->columns;
+
+    for(int rowIndex=0; rowIndex < rows; rowIndex++) {
+        for(int columnIndex=0; columnIndex < cols; columnIndex++) {
+            destination->values[rowIndex][columnIndex] = original->values[rowIndex][columnIndex];
+        }
+    }
+}
+
+Matrix* getColumn(Matrix* m, int index) {
+    assert(index < m->columns);
+    assert(index >=0);
+
+    Matrix *column = initMatrix(m->rows,1);
+    for(int i = 0; i < m->rows; i++) {
+        column->values[i][0] = m->values[i][index];
+    }
+    return column;
+}
+Matrix* getRow(Matrix* m, int index) {
+    assert(index < m->rows);
+    assert(index >= 0);
+
+    Matrix *column = initMatrix(1,m->columns);
+    for(int i = 0; i < m->columns; i++) {
+        column->values[0][i] = m->values[index][i];
+    }
+    return column;
+}
+
 void deleteMatrix(Matrix *m) {
     for (int rowIndex = 0; rowIndex < m->rows; rowIndex++) {
         free( m->values[rowIndex]);
     }
     free(m->values);
     free(m);
+}
+
+void applyFunction(Matrix *matrix, double (*function)(double val)) {
+    int rows = matrix->rows;
+    int cols = matrix->columns;
+
+    for(int i=0; i < rows; i++) {
+        for(int j=0; j < cols; j++) {
+            matrix->values[i][j] = function(matrix->values[i][j]);
+        }
+    }
 }

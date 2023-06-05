@@ -20,7 +20,7 @@ struct NeuralNetwork{
 };
 Matrix* getOutput(NeuralNetwork *nn);
 void feedForward(NeuralNetwork *nn);
-void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected, double rate);
+void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected, double rate, int all);
 void setInput(NeuralNetwork* nn, Matrix* input);
 NeuralNetwork* initNetwork(int inputCount, int numLayers, int outputCount, int nodesPerLayer);
 NNLayer* initInputLayer(int nodes);

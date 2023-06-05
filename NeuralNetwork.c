@@ -7,8 +7,8 @@
 
 void descend(NeuralNetwork* nn);
 
-double randMax = 1.0;
-double randMin = -0.3;
+double randMax = .20;
+double randMin = 0;
 NeuralNetwork* initNetwork(int inputCount, int numHiddenLayers, int outputCount, int nodesPerLayer) {
     NeuralNetwork *nn = malloc(sizeof(NeuralNetwork));
     nn->inputCount = inputCount;
@@ -93,45 +93,52 @@ Matrix* getOutput(NeuralNetwork *nn) {
     return output;
 }
 
-void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected, double rate) { //Data
+void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected, double rate, int all) { //Data
     assert(trainingInputs->rows == trainingExpected->columns);
     Matrix* biasDerHolder;
     Matrix* nextBiasHolder;
     double r = rate / trainingInputs->rows;
     for (int i =0; i < trainingInputs->rows; i++) {
-        Matrix* row = getRow(trainingInputs,i);
-        setInput(nn, row);
-        deleteMatrix(row);
-        feedForward(nn);
-        Matrix* expected = getColumn(trainingExpected, i);
-        Matrix* actual = getOutput(nn);
-        NNLayer* currLayer = nn->outputLayer;
-        biasDerHolder = initMatrix(1, currLayer->nodeCount);
-        while (currLayer->prevLayer != NULL) {
-            nextBiasHolder = initMatrix(1, currLayer->prevLayer->nodeCount);
-            double oneDivNodeCount = 1./currLayer->nodeCount;
-            for (int j = 0; j < currLayer->nodeCount; j++) {
-                if (currLayer == nn->outputLayer){
-                    biasDerHolder->values[0][j] = r * (actual->values[0][j] - expected->values[0][j]) * nn->actToDerivative(actual->values[0][j]);
+        if (((double)rand())/RAND_MAX < .03 || all){
+            Matrix* row = getRow(trainingInputs,i);
+            setInput(nn, row);
+            deleteMatrix(row);
+            feedForward(nn);
+            Matrix* expected = getColumn(trainingExpected, i);
+            Matrix* actual = getOutput(nn);
+            NNLayer* currLayer = nn->outputLayer;
+            biasDerHolder = initMatrix(1, currLayer->nodeCount);
+            while (currLayer->prevLayer != NULL) {
+                nextBiasHolder = initMatrix(1, currLayer->prevLayer->nodeCount);
+                double oneDivNodeCount = 1./currLayer->nodeCount;
+                for (int j = 0; j < currLayer->nodeCount; j++) {
+                    if (currLayer == nn->outputLayer){
+                        biasDerHolder->values[0][j] = r * (actual->values[0][j] - expected->values[j][0])  * nn->actToDerivative(actual->values[0][j]);
+                        if(expected->values[j][0] > 0){
+                            biasDerHolder->values[0][j] *= expected->rows;
+                        }
+                    }
+                    else {
+                        biasDerHolder->values[0][j] *= nn->actToDerivative(currLayer->activations->values[0][j]) ;
+                    }
+                    currLayer->biasesGrad->values[0][j] += biasDerHolder->values[0][j];
+                    for(int k = 0; k < currLayer->weightsGrad->rows; k++) {
+                        currLayer->weightsGrad->values[k][j] +=  biasDerHolder->values[0][j] * currLayer->prevLayer->activations->values[0][k] ;
+                        nextBiasHolder->values[0][k] +=  biasDerHolder->values[0][j] * currLayer->weights->values[k][j];
+                    }
                 }
-                else {
-                    biasDerHolder->values[0][j] *= nn->actToDerivative(currLayer->activations->values[0][j]) ;
-                }
-                currLayer->biasesGrad->values[0][j] += biasDerHolder->values[0][j];
-                for(int k = 0; k < currLayer->weightsGrad->rows; k++) {
-                    currLayer->weightsGrad->values[k][j] += oneDivNodeCount * biasDerHolder->values[0][j] * currLayer->prevLayer->activations->values[0][k];
-                    nextBiasHolder->values[0][k] += oneDivNodeCount * biasDerHolder->values[0][j] * currLayer->weights->values[k][j];
-                }
+                deleteMatrix(biasDerHolder);
+                biasDerHolder = nextBiasHolder;
+                currLayer = currLayer->prevLayer;
             }
-            deleteMatrix(biasDerHolder);
-            biasDerHolder = nextBiasHolder;
-            currLayer = currLayer->prevLayer;
+            deleteMatrix(actual);
+            deleteMatrix(expected);
+            deleteMatrix(nextBiasHolder);
+            descend(nn);
         }
-        deleteMatrix(actual);
-        deleteMatrix(expected);
-        deleteMatrix(nextBiasHolder);
+
     }
-    descend(nn);
+
 }
 
 void descend(NeuralNetwork* nn) {
@@ -144,6 +151,9 @@ void descend(NeuralNetwork* nn) {
             }
             currLayer->biases->values[0][colIndex] -= currLayer->biasesGrad->values[0][colIndex];
             currLayer->biasesGrad->values[0][colIndex] = 0;
+            if (currLayer == nn->outputLayer){
+                currLayer->biases->values[0][colIndex] = 0;
+            }
         }
         currLayer = currLayer->nextLayer;
     }

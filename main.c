@@ -58,9 +58,9 @@ int main() {
             train(nn, trainingInput, trainingAnswers, 10000, 0 );
             if (i%100 == 0 ) {
                 currentStateMNIST(nn, testInput, testAnswers);
-                printf("************************************************************************************\n");
+                printf("**********************************\n");
                 printf("%i\n", i);
-                printf("************************************************************************************\n");
+                printf("**********************************\n");
             }
         }
     }
@@ -86,7 +86,7 @@ void currentState(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExp
     }
 }
 void printInputLayer(Matrix* row) {
-    printf("*************************************************\n\n");
+    printf("**********************************\n\n");
     for (int i =0; i < row->columns; i++) {
         if(row->values[0][i]<.1){
             printf(" ");
@@ -116,7 +116,7 @@ void currentStateMNIST(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* traini
             Matrix* expected = getColumn(trainingExpected, i);
             Matrix* actual = getOutput(nn);
             printf("  Actual \t|Predicted\n");
-            printf("___________________________________\n");
+            printf("________________|________________\n");
             for(int j=0; j<10;j++) {
                 printf("%i: %f\t|%f\n", j, expected->values[j][0], actual->values[0][j]);
             }

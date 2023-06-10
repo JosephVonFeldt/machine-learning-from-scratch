@@ -15,7 +15,7 @@ void deleteMatrix(Matrix *m);
 struct Matrix{
     int rows;
     int columns;
-    double** values;
+    double* values;
 };
 void copyInto(Matrix *original, Matrix *destination);
 void broadcastAdd(Matrix *a, Matrix *b, Matrix *out);
@@ -25,4 +25,6 @@ void inPlaceScaleMatrix(Matrix *matrix, double n);
 void applyFunction(Matrix *matrix, double (*function)(double val));
 Matrix* getColumn(Matrix* m, int index);
 Matrix* getRow(Matrix* m, int index);
+void setValue(Matrix* m, int i, int j, double value);
+double getValue(Matrix* m, int i, int j);
 #endif //NeuralNets_MATRIX_H

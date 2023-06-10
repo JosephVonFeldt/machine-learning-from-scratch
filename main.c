@@ -3,6 +3,8 @@
 //
 #include "NeuralNetwork.h"
 #include "mnist.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 void currentStateMNIST(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 void currentState(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
@@ -31,7 +33,7 @@ int main() {
         trainingAnswers->values[0][3] = 0;
 
         for (int i = 0; i < 1e6+1; i++) {
-            train(nn, trainingInput, trainingAnswers, 1, 1);
+            train(nn, trainingInput, trainingAnswers, .1, 1);
             if (i%50000 == 0) {
                 currentState(nn,trainingInput, trainingAnswers);
                 printf("************************************************************************************\n");
@@ -39,7 +41,7 @@ int main() {
         }
     }
     else{
-        NeuralNetwork* nn = initNetwork(784, 2, 10, 30);
+        NeuralNetwork* nn = initNetwork(784, 3, 10, 30);
         // You may need to mess with the file path
         char* filename = ".\\..\\..\\machine-learning-from-scratch\\MNIST\\mnist_train.csv";//
         int lines = lineCount(filename);
@@ -53,9 +55,9 @@ int main() {
         Matrix* testAnswers = initMatrix(10, lines);
         getMnistFileData(testInput, testAnswers,filename);
 
-        for (int i = 0; i < 1e7+1; i++) {
-
-            train(nn, trainingInput, trainingAnswers, 10000, 0 );
+        for (int i = 0; i < 1e6
+        +1; i++) {
+            train(nn, trainingInput, trainingAnswers, .1, 0 );
             if (i%100 == 0 ) {
                 currentStateMNIST(nn, testInput, testAnswers);
                 printf("**********************************\n");

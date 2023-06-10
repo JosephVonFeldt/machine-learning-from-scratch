@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 3.25)
-project(NeuralNets C)
+cmake_minimum_required(VERSION 3.22)
+project(NeuralNets CUDA C )
 
-set(CMAKE_C_STANDARD 11)
+find_package(CUDA)
+set(CMAKE_CUDA_STANDARD 17)
 
-add_executable(NeuralNets Matrix.c Matrix.h NeuralNetwork.c NeuralNetwork.h main.c mnist.c mnist.h)
+#Matrix.c Matrix.h
+add_executable(NeuralNets NeuralNetwork.c NeuralNetwork.h main.c mnist.c mnist.h MatrixGPU.cu MatrixGPU.cuh)
+
+set_target_properties(NeuralNets PROPERTIES LINKER_LANGUAGE CUDA)
+

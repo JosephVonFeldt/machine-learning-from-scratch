@@ -4,7 +4,7 @@
 
 #ifndef NEURALNETS_MNIST_H
 #define NEURALNETS_MNIST_H
-#include "Matrix.h"
+#include "MatrixGPU.cuh"
 int lineCount(char* fileName); // This probably isn't secure
 void getMnistFileData(Matrix* input, Matrix* output, char* filename);
 

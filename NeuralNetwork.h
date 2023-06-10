@@ -4,11 +4,15 @@
 
 #ifndef NeuralNets_NEURALNETWORK_H
 #define NeuralNets_NEURALNETWORK_H
-#include "Matrix.h"
+#include "MatrixGPU.cuh"
+
+
+
 typedef struct NeuralNetwork NeuralNetwork;
 typedef struct NNLayer NNLayer;
 double sigmoid(double x);
-double sigmoidToDerivative(double x);
+double sigmoidToDerivative(double
+x);
 struct NeuralNetwork{
     int inputCount;
     int numHiddenLayers;

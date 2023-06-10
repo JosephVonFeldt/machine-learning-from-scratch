@@ -3,12 +3,16 @@
 //
 
 #include <math.h>
+#include <assert.h>
+#include <malloc.h>
+#include <stdlib.h>
+
 #include "NeuralNetwork.h"
 
 void descend(NeuralNetwork* nn);
 
-double randMax = .20;
-double randMin = 0;
+double randMax = 0.50;
+double randMin = -0.50;
 NeuralNetwork* initNetwork(int inputCount, int numHiddenLayers, int outputCount, int nodesPerLayer) {
     NeuralNetwork *nn = malloc(sizeof(NeuralNetwork));
     nn->inputCount = inputCount;
@@ -97,7 +101,7 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
     assert(trainingInputs->rows == trainingExpected->columns);
     Matrix* biasDerHolder;
     Matrix* nextBiasHolder;
-    double r = rate / trainingInputs->rows;
+    double r = rate;// / nn->numHiddenLayers;
     for (int i =0; i < trainingInputs->rows; i++) {
         if (((double)rand())/RAND_MAX < .03 || all){
             Matrix* row = getRow(trainingInputs,i);
@@ -113,7 +117,7 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
                 double oneDivNodeCount = 1./currLayer->nodeCount;
                 for (int j = 0; j < currLayer->nodeCount; j++) {
                     if (currLayer == nn->outputLayer){
-                        biasDerHolder->values[0][j] = r * (actual->values[0][j] - expected->values[j][0])  * nn->actToDerivative(actual->values[0][j]);
+                        biasDerHolder->values[0][j] = r * (actual->values[0][j] - expected->values[j][0]) * nn->actToDerivative(actual->values[0][j]);
                         if(expected->values[j][0] > 0){
                             biasDerHolder->values[0][j] *= expected->rows;
                         }
@@ -136,9 +140,7 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
             deleteMatrix(nextBiasHolder);
             descend(nn);
         }
-
     }
-
 }
 
 void descend(NeuralNetwork* nn) {

@@ -89,9 +89,9 @@ void getMnistFileData(Matrix* input, Matrix* output, char* filename) { // this a
                 num = num * 10 + myString[j] - 48;
             if (myString[j]==','){
                 if(count == 0){
-                    output->values[num][currLine] = 1;
+                    setValue(output, num, currLine, 1);
                 } else {
-                    input->values[currLine][count-1] = ((double)num)/255;
+                    setValue(input, currLine, count-1,((double)num)/255);
                 }
                 count++;
                 if (count == 784) {

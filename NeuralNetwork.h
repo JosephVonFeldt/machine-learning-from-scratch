@@ -6,8 +6,6 @@
 #define NeuralNets_NEURALNETWORK_H
 #include "MatrixGPU.cuh"
 
-
-
 typedef struct NeuralNetwork NeuralNetwork;
 typedef struct NNLayer NNLayer;
 double sigmoid(double x);

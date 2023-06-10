@@ -116,19 +116,26 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
                 nextBiasHolder = initMatrix(1, currLayer->prevLayer->nodeCount);
                 double oneDivNodeCount = 1./currLayer->nodeCount;
                 for (int j = 0; j < currLayer->nodeCount; j++) {
+                    double biasPartialDerivative;
                     if (currLayer == nn->outputLayer){
-                        biasDerHolder->values[0][j] = r * (actual->values[0][j] - expected->values[j][0]) * nn->actToDerivative(actual->values[0][j]);
-                        if(expected->values[j][0] > 0){
-                            biasDerHolder->values[0][j] *= expected->rows;
+                        biasPartialDerivative = r * (getValue(actual, 0, j) - getValue(expected, j, 0)) * nn->actToDerivative(getValue(actual, 0, j));
+                        setValue(biasDerHolder, 0, j, biasPartialDerivative);
+                        if(getValue(expected, j, 0) > 0){
+                            biasPartialDerivative *= expected->rows;
+                            setValue(biasDerHolder, 0, j, biasPartialDerivative);
                         }
                     }
                     else {
-                        biasDerHolder->values[0][j] *= nn->actToDerivative(currLayer->activations->values[0][j]) ;
+                        biasPartialDerivative = nn->actToDerivative(getValue(currLayer->activations, 0, j)) * getValue(biasDerHolder, 0, j);
+                        setValue(biasDerHolder, 0, j, biasPartialDerivative);
                     }
-                    currLayer->biasesGrad->values[0][j] += biasDerHolder->values[0][j];
+                    double cumulativeBiasPartial = getValue(currLayer->biasesGrad, 0, j ) + biasPartialDerivative;
+                    setValue(currLayer->biasesGrad, 0, j, cumulativeBiasPartial);
                     for(int k = 0; k < currLayer->weightsGrad->rows; k++) {
-                        currLayer->weightsGrad->values[k][j] +=  biasDerHolder->values[0][j] * currLayer->prevLayer->activations->values[0][k] ;
-                        nextBiasHolder->values[0][k] +=  biasDerHolder->values[0][j] * currLayer->weights->values[k][j];
+                        double currWeightsPartial = biasPartialDerivative * getValue(currLayer->prevLayer->activations, 0, k);
+                        setValue(currLayer->weightsGrad, k, j, currWeightsPartial);
+                        double nextBiasPartialPiece = biasPartialDerivative * getValue(currLayer->weights, k, j);
+                        setValue(nextBiasHolder,0, k, nextBiasPartialPiece);
                     }
                 }
                 deleteMatrix(biasDerHolder);
@@ -148,13 +155,17 @@ void descend(NeuralNetwork* nn) {
     while (currLayer != NULL) {
         for (int colIndex = 0; colIndex < currLayer->weights->columns; colIndex++) {
             for (int rowIndex = 0; rowIndex < currLayer->weights->rows; rowIndex++) {
-                currLayer->weights->values[rowIndex][colIndex] -= currLayer->weightsGrad->values[rowIndex][colIndex];
-                currLayer->weightsGrad->values[rowIndex][colIndex] = 0;
+                double weightsPartial = getValue(currLayer->weightsGrad, rowIndex, colIndex);
+                double currWeight = getValue(currLayer->weights, rowIndex, colIndex);
+                setValue(currLayer->weights, rowIndex,colIndex, currWeight - weightsPartial);
+                setValue(currLayer->weightsGrad, rowIndex, colIndex, 0);
             }
-            currLayer->biases->values[0][colIndex] -= currLayer->biasesGrad->values[0][colIndex];
-            currLayer->biasesGrad->values[0][colIndex] = 0;
+            double biasPartial = getValue(currLayer->biasesGrad, 0, colIndex);
+            double currBias = getValue(currLayer->biases, 0, colIndex);
+            setValue(currLayer->biases, 0, colIndex, currBias - biasPartial);
+            setValue(currLayer->biasesGrad, 0, colIndex, 0);
             if (currLayer == nn->outputLayer){
-                currLayer->biases->values[0][colIndex] = 0;
+                setValue(currLayer->biases, 0, colIndex, 0);
             }
         }
         currLayer = currLayer->nextLayer;

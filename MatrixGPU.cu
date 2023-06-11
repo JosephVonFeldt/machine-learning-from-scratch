@@ -15,7 +15,8 @@ Matrix* initMatrix(int rows, int columns) {
     auto *m = new Matrix();
     m->rows = rows;
     m->columns = columns;
-    m->values = static_cast<double *>(malloc(sizeof(double *) * rows * columns));
+    //m->values = static_cast<double *>(malloc(sizeof(double *) * rows * columns));
+    cudaMallocHost(&m->values, sizeof(double *) * rows * columns);
     for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
         for (int colIndex = 0; colIndex < columns; colIndex++) {
             m->values[rowIndex * columns + colIndex] = 0;
@@ -110,7 +111,7 @@ void matMultiply(Matrix *a, Matrix *b, Matrix *out) {
 
         cudaFree(gpuMatA);
         cudaFree(gpuMatB);
-        //cudaFree(gpuMatOut);
+        cudaFree(gpuMatOut);
 
     }else {
         for (int i = 0; i < rows; i++) {
@@ -191,7 +192,8 @@ void getRowArr(Matrix *m, int index, double out[]) {
 }
 
 void deleteMatrix(Matrix *m) {
-    free(m->values);
+    cudaFreeHost(m->values);
+    //free(m->values);
     free(m);
 }
 

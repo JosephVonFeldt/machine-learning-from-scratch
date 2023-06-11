@@ -3,8 +3,9 @@
 //
 
 #include <stdio.h>
+#include <malloc.h>
 #include "assert.h"
-#include "mnist.h"
+#include "mnist.cuh"
 
 
 int main1() {
@@ -82,6 +83,16 @@ void getMnistFileData(Matrix* input, Matrix* output, char* filename) { // this a
     int count = 0;
     int num = 0;
 
+    double *in;
+    cudaMallocHost(&in, sizeof(double) * input->columns * input->rows);
+    for (int i = 0 ; i < input->columns * input->rows; i++) {
+        in[i] = 0;
+    }
+    double *out;
+    cudaMallocHost(&out, sizeof(double) * output->columns * output->rows);
+    for (int i = 0 ; i < output->columns * output->rows; i++) {
+        out[i] = 0;
+    }
     for(int currLine=0; currLine<numLines; currLine++){
         fgets(myString, 4000, fptr);
         for(int j=0; j< 4000; j++){
@@ -89,9 +100,11 @@ void getMnistFileData(Matrix* input, Matrix* output, char* filename) { // this a
                 num = num * 10 + myString[j] - 48;
             if (myString[j]==','){
                 if(count == 0){
-                    setValue(output, num, currLine, 1);
+                    out[num * output->columns + currLine] = 1;
+                    //setValue(output, num, currLine, 1);
                 } else {
-                    setValue(input, currLine, count-1,((double)num)/255);
+                    in[currLine * input->columns + count-1] = ((double)num)/255;
+                    //setValue(input, currLine, count-1,((double)num)/255);
                 }
                 count++;
                 if (count == 784) {
@@ -103,6 +116,9 @@ void getMnistFileData(Matrix* input, Matrix* output, char* filename) { // this a
         count = 0;
     }
     fclose(fptr);
-
+    setValues(input, in);
+    setValues(output, out);
+    cudaFreeHost(in);
+    cudaFreeHost(out);
 
 }

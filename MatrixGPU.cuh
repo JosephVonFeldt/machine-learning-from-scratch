@@ -26,6 +26,8 @@ extern "C" {
     Matrix* getRow(Matrix* m, int index);
     double getValue(Matrix* m, int i, int j);
     void setValue(Matrix* m, int i, int j, double value);
+    void setValues(Matrix* m, double *values);
+    void sync();
 
 #endif  //NEURALNETS_MATRIXGPU_CUH
 #ifdef __cplusplus

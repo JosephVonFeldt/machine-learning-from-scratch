@@ -99,7 +99,7 @@ void matMultiply(Matrix *a, Matrix *b, Matrix *out) {
 //
 //        cudaFree(gpuMatA);
 //        cudaFree(gpuMatB);
-//        //cudaFree(gpuMatOut);
+//        cudaFree(gpuMatOut);
 
     }else {
         for (int i = 0; i < rows; i++) {

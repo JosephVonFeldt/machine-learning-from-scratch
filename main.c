@@ -1,8 +1,8 @@
 //
 // Created by joeyv on 6/3/2023.
 //
-#include "NeuralNetwork.h"
-#include "mnist.h"
+#include "NeuralNetwork.cuh"
+#include "mnist.cuh"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -45,6 +45,7 @@ int main() {
         // You may need to mess with the file path
         char* filename = ".\\..\\..\\machine-learning-from-scratch\\MNIST\\mnist_train.csv";//
         int lines = lineCount(filename);
+
         Matrix* trainingInput = initMatrix(lines,784);
         Matrix* trainingAnswers = initMatrix(10, lines);
         getMnistFileData(trainingInput, trainingAnswers,filename);
@@ -56,7 +57,6 @@ int main() {
         getMnistFileData(testInput, testAnswers,filename);
 
         for (int i = 0; i < 1e6+1; i++) {
-            printf("%i\n", i);
             train(nn, trainingInput, trainingAnswers, .1, 0 );
             if (i%10 == 0 ) {
                 currentStateMNIST(nn, testInput, testAnswers);

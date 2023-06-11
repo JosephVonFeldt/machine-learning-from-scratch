@@ -10,33 +10,49 @@ using namespace std;
 
 #include <malloc.h>
 double randDouble(double max, double min);
+__global__ void apply_sigmoid(double *mat1, int len);
+__global__ void mat_add(double *mat1, double *mat2, int len);
 __global__ void mat_mul(double *mat1, double *mat2, double *outMat, int outRowCount, int sharedCount, int outColCount);
+
+
 Matrix* initMatrix(int rows, int columns) {
     auto *m = new Matrix();
     m->rows = rows;
     m->columns = columns;
-    m->values = static_cast<double *>(malloc(sizeof(double *) * rows * columns));
+    double *temp;
+    cudaMallocHost(&temp, sizeof(double *) * rows * columns);
+    cudaMalloc(&m->values, sizeof(double *) * rows * columns);
     for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
         for (int colIndex = 0; colIndex < columns; colIndex++) {
-            m->values[rowIndex * columns + colIndex] = 0;
+            temp[rowIndex * columns + colIndex] = 0;
         }
     }
+    cudaMemcpy(m->values, temp, sizeof(double *) * rows * columns, cudaMemcpyHostToDevice);
+    cudaFreeHost(temp);
     return m;
 }
 void randomizeMatrix(Matrix *m, double maxValue, double minValue) {
+    double *temp;
+    cudaMallocHost(&temp, sizeof(double *) * m-> rows * m->columns);
     for (int rowIndex = 0; rowIndex < m->rows; rowIndex++) {
         for (int colIndex = 0; colIndex < m->columns; colIndex++) {
-            m->values[rowIndex * m->columns + colIndex] = randDouble(maxValue, minValue);
+            temp[rowIndex * m->columns + colIndex] = randDouble(maxValue, minValue);
         }
     }
+    cudaMemcpy(m->values, temp, sizeof(double *) * m-> rows * m->columns, cudaMemcpyHostToDevice);
+    cudaFreeHost(temp);
 }
 void printMatrix(Matrix *m) {
+    double *temp;
+    cudaMallocHost(&temp, m->rows * m->columns * sizeof(double));
+    cudaMemcpy(temp, m->values, m->columns * m->rows * sizeof(double), cudaMemcpyDeviceToHost);
     for (int rowIndex = 0; rowIndex < m->rows; rowIndex++) {
         for (int colIndex = 0; colIndex < m->columns; colIndex++) {
-            printf("%f ", m->values[rowIndex * m->columns + colIndex]);
+            printf("%f ", temp[rowIndex * m->columns + colIndex]);
         }
         printf("\n");
     }
+    cudaFreeHost(temp);
 }
 
 double randDouble(double max, double min) {
@@ -55,12 +71,17 @@ void broadcastAdd(Matrix *a, Matrix *b, Matrix *out) {
     assert(a->columns == b->columns);
     assert(b->columns == out->columns);
     int cols = a->columns;
-
-    for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
-        for (int columnIndex = 0; columnIndex < cols; columnIndex++) {
-            out->values[rowIndex * out->columns + columnIndex] = a->values[rowIndex * a->columns + columnIndex] + b->values[rowIndex * b->columns + columnIndex];
-        }
-    }
+    mat_add<<<cols*rows,1>>>(a->values, b->values,  cols*rows);
+    cudaDeviceSynchronize();
+//    for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+//        printf("\nrow %d \n", rowIndex);
+//        for (int columnIndex = 0; columnIndex < cols; columnIndex++) {
+//            printf("col %d\t", columnIndex);
+//            double d = a->values[rowIndex * a->columns + columnIndex] + b->values[rowIndex * b->columns + columnIndex];
+//            out->values[rowIndex * out->columns + columnIndex] = 1;
+//            //a->values[rowIndex * a->columns + columnIndex] + b->values[rowIndex * b->columns + columnIndex];
+//        }
+//    }
 }
 
 void broadcastMultiply(Matrix *a, Matrix *b, Matrix *out) {
@@ -91,27 +112,8 @@ void matMultiply(Matrix *a, Matrix *b, Matrix *out) {
     int cols = out->columns;
 
     if (1) {
-        double *gpuMatA;
-        double *gpuMatB;
-        double *gpuMatOut;
-
-        cudaMalloc((void**) &gpuMatA, sizeof(double)*a->rows*a->columns);
-        cudaMalloc((void**) &gpuMatB, sizeof(double)*b->rows*b->columns);
-        cudaMalloc((void**) &gpuMatOut, sizeof(double)*out->rows*out->columns);
-
-        cudaMemcpy(gpuMatA, a->values, sizeof(double)*a->rows*a->columns, cudaMemcpyHostToDevice);
-        cudaMemcpy(gpuMatB, b->values, sizeof(double)*b->rows*b->columns, cudaMemcpyHostToDevice);
-
-        mat_mul<<<cols, rows>>>(gpuMatA, gpuMatB, gpuMatOut, rows, a->columns, cols);
-
-
-
-        cudaMemcpy(out->values, gpuMatOut, sizeof(double)*out->rows*out->columns, cudaMemcpyDeviceToHost);
-
-        cudaFree(gpuMatA);
-        cudaFree(gpuMatB);
-        //cudaFree(gpuMatOut);
-
+        mat_mul<<<cols, rows>>>(a->values, b->values, out->values, rows, a->columns, cols);
+        cudaDeviceSynchronize();
     }else {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -145,33 +147,47 @@ void copyInto(Matrix *original, Matrix *destination) {
     assert(original->columns == destination->columns);
     int cols = original->columns;
 
-    for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
-        for (int columnIndex = 0; columnIndex < cols; columnIndex++) {
-            destination->values[rowIndex * cols + columnIndex] = original->values[rowIndex * cols + columnIndex];
-        }
-    }
+    cudaMemcpy(destination->values,original->values,rows * cols * sizeof(double), cudaMemcpyDeviceToDevice);
+//    for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+//        for (int columnIndex = 0; columnIndex < cols; columnIndex++) {
+//            destination->values[rowIndex * cols + columnIndex] = original->values[rowIndex * cols + columnIndex];
+//        }
+//    }
 }
 
+__global__ void getCol(double* mat, double* col, int colIndex, int numRows, int numCols){
+    unsigned int num = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int curRow = num/numCols;
+    unsigned int curCol = num%numCols;
+    if (curRow < numRows && curCol == colIndex) {
+        col[curRow] = mat[curRow * numCols + curCol];
+    }
+}
 Matrix *getColumn(Matrix *m, int index) {
     assert(index < m->columns);
     assert(index >= 0);
 
     Matrix *column = initMatrix(m->rows, 1);
-    for (int i = 0; i < m->rows; i++) {
-        column->values[i] = m->values[i * m->columns + index];
-    }
+    getCol<<<m->columns * m->rows, 1>>>(m->values, column->values, index, m->rows, m->columns);
+    cudaDeviceSynchronize();
     return column;
 }
-
+__global__ void getRow(double* mat, double* row, int rowIndex, int numRows, int numCols){
+    unsigned int num = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int curRow = num/numCols;
+    unsigned int curCol = num%numCols;
+    if (curRow == rowIndex && curCol < numCols) {
+        row[curCol] += mat[curRow * numCols + curCol];
+    }
+}
 Matrix *getRow(Matrix *m, int index) {
     assert(index < m->rows);
     assert(index >= 0);
 
-    Matrix *column = initMatrix(1, m->columns);
-    for (int i = 0; i < m->columns; i++) {
-        column->values[i] = m->values[index * m->columns + i];
-    }
-    return column;
+    Matrix *row = initMatrix(1, m->columns);
+    getRow<<<m->columns * m->rows, 1>>>(m->values, row->values, index, m->rows, m->columns);
+    cudaDeviceSynchronize();
+    return row;
 }
 
 void getColumnArr(Matrix *m, int index, double out[]) {
@@ -191,27 +207,43 @@ void getRowArr(Matrix *m, int index, double out[]) {
 }
 
 void deleteMatrix(Matrix *m) {
-    free(m->values);
+    cudaFree(m->values);
     free(m);
 }
 
 void applyFunction(Matrix *matrix, double (*function)(double val)) {
     int rows = matrix->rows;
     int cols = matrix->columns;
+    apply_sigmoid<<<rows * cols, 1 >>>(matrix->values, rows*cols );
+    //cudaDeviceSynchronize();
+//    sync();
+//    for (int i = 0; i < rows; i++) {
+//        for (int j = 0; j < cols; j++) {
+//            matrix->values[i * matrix->columns + j] = function(matrix->values[i * matrix->columns + j]);
+//        }
+//    }
 
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            matrix->values[i * matrix->columns + j] = function(matrix->values[i * matrix->columns + j]);
-        }
-    }
 }
 
+
 double getValue(Matrix * m, int i, int j) {
-    return m->values[i*m->columns + j];
+    int ind = i * m->columns + j;
+    double x;
+    cudaMemcpy(&x, m->values + ind , sizeof(double), cudaMemcpyDeviceToHost);
+    return x;
 }
 
 void setValue(Matrix * m, int i, int j, double value) {
-    m->values[i*m->columns + j] = value;
+    int ind = i * m->columns + j;
+    double x = value;
+    cudaMemcpy(m->values + ind * sizeof(double), &x, 1, cudaMemcpyHostToDevice);
+}
+void setValues(Matrix* m, double *values) {
+    cudaMemcpy(m->values, values, sizeof(double) * m->columns * m->rows, cudaMemcpyHostToDevice);
+}
+
+void sync() {
+    cudaDeviceSynchronize();
 }
 
 __global__ void mat_mul(double *mat1, double *mat2, double *outMat, int outRowCount, int sharedCount, int outColCount) {
@@ -224,5 +256,20 @@ __global__ void mat_mul(double *mat1, double *mat2, double *outMat, int outRowCo
             sum += mat1[row * sharedCount + i] * mat2[i * outColCount + col];
         }
         outMat[row * outColCount + col] = sum;
+    }
+}
+__global__ void mat_add(double *mat1, double *mat2,  int len) {
+    unsigned int num = blockDim.x * blockIdx.x + threadIdx.x;
+    if (num < len) {
+        mat2[num] += mat1[num];
+    }
+}
+
+__global__ void apply_sigmoid(double *mat1, int len) {
+    unsigned int num = blockDim.x * blockIdx.x + threadIdx.x;
+    if (num < len) {
+        double x = mat1[num];
+        x = 1 / (1 + exp(-x));
+        mat1[num] = x;
     }
 }

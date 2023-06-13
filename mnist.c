@@ -102,6 +102,4 @@ void getMnistFileData(Matrix* input, Matrix* output, char* filename) { // this a
         count = 0;
     }
     fclose(fptr);
-
-
 }

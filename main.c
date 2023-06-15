@@ -3,7 +3,7 @@
 //
 #include "NeuralNetwork.h"
 #include "mnist.h"
-
+#include "saveNN.h"
 void currentStateMNIST(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 void currentState(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 int main() {
@@ -53,19 +53,23 @@ int main() {
         Matrix* testAnswers = initMatrix(10, lines);
         getMnistFileData(testInput, testAnswers,filename);
 
-        for (int i = 0; i < 1e7+1; i++) {
+        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN.nn";
+        NeuralNetwork* loaded = malloc(sizeof(NeuralNetwork));
+        loadNetwork(loaded, filename);
+        currentStateMNIST(loaded, testInput, testAnswers);
+        for (int i = 0; i < 10000; i++) {
 
             train(nn, trainingInput, trainingAnswers, 10000, 0 );
-            if (i%100 == 0 ) {
-                currentStateMNIST(nn, testInput, testAnswers);
+            if (i%1000== 0 ) {
+                //currentStateMNIST(nn, testInput, testAnswers);
                 printf("**********************************\n");
                 printf("%i\n", i);
                 printf("**********************************\n");
             }
         }
+        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN.nn";//
+        saveNetwork(nn, filename);
     }
-
-
     return 0;
 }
 

@@ -11,8 +11,8 @@
 
 void descend(NeuralNetwork* nn);
 
-double randMax = .5;
-double randMin = -.5;
+double randMax = .2;
+double randMin = 0;
 NeuralNetwork* initNetwork(int inputCount, int numHiddenLayers, int outputCount, int nodesPerLayer) {
     NeuralNetwork *nn = malloc(sizeof(NeuralNetwork));
     nn->inputCount = inputCount;
@@ -103,7 +103,7 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
     Matrix* nextBiasHolder;
     double r = rate;// / nn->numHiddenLayers;
     for (int i =0; i < trainingInputs->rows; i++) {
-        if (((double)rand())/RAND_MAX < .1 || all){
+        if (((double)rand())/RAND_MAX < .03 || all){
             Matrix* row = getRow(trainingInputs,i);
             setInput(nn, row);
             deleteMatrix(row);
@@ -120,10 +120,10 @@ void train (NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected,
                     if (currLayer == nn->outputLayer){
                         biasPartialDerivative = r * (getValue(actual, 0, j) - getValue(expected, j, 0)) * nn->actToDerivative(getValue(actual, 0, j));
                         setValue(biasDerHolder, 0, j, biasPartialDerivative);
-//                        if(getValue(expected, j, 0) > 0){
-//                            biasPartialDerivative *= currLayer->nodeCount/2;
-//                            setValue(biasDerHolder, 0, j, biasPartialDerivative);
-//                        }
+                        if(getValue(expected, j, 0) > 0){
+                            biasPartialDerivative *= expected->rows;
+                            setValue(biasDerHolder, 0, j, biasPartialDerivative);
+                        }
                     }
                     else {
                         biasPartialDerivative = nn->actToDerivative(getValue(currLayer->activations, 0, j)) * getValue(biasDerHolder, 0, j);

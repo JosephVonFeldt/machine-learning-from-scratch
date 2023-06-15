@@ -93,7 +93,7 @@ void saveLayer(NNLayer *layer, int preNodeCount, FILE *fptr) {
     fprintf(fptr, "W[ ");
     for(int row = 0; row < preNodeCount; row++) {
         for(int col =0; col < layer->nodeCount; col++) {
-            fprintf(fptr, "%f ", layer->weights->values[row * layer->nodeCount + col]); //TODO: HERE
+            fprintf(fptr, "%f ", layer->weights->values[row * layer->nodeCount + col]);
         }
     }
     fprintf(fptr, "]B[ ");

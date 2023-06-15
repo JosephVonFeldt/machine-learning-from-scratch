@@ -3,8 +3,10 @@
 //
 #include "NeuralNetwork.h"
 #include "mnist.h"
+#include "saveNN.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 void currentStateMNIST(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 void currentState(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
@@ -41,7 +43,9 @@ int main() {
         }
     }
     else{
-        NeuralNetwork* nn = initNetwork(784, 2, 10, 30);
+        srand(time(0));
+        NeuralNetwork* nn = initNetwork(784, 3
+                                        , 10, 60);
         // You may need to mess with the file path
         char* filename = ".\\..\\..\\machine-learning-from-scratch\\MNIST\\mnist_train.csv";//
         int lines = lineCount(filename);
@@ -54,20 +58,25 @@ int main() {
         Matrix* testInput = initMatrix(lines,784);
         Matrix* testAnswers = initMatrix(10, lines);
         getMnistFileData(testInput, testAnswers,filename);
-
-        for (int i = 0; i < 1e6+1; i++) {
-            printf("%i\n", i);
-            train(nn, trainingInput, trainingAnswers, .1, 0 );
-            if (i%10 == 0 ) {
-                currentStateMNIST(nn, testInput, testAnswers);
+        NeuralNetwork loadedNN;
+        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN3-60v4.nn";
+        loadNetwork(&loadedNN, filename);
+        srand(time(0));
+        currentStateMNIST(&loadedNN, testInput, testAnswers);
+        return 0;
+        for (int i = 0; i < 1001; i++) {
+            train(&loadedNN, trainingInput, trainingAnswers, .2
+                  , 0 );
+            if (i%100 == 0  ) {
+                currentStateMNIST(&loadedNN, testInput, testAnswers);
                 printf("**********************************\n");
                 printf("%i\n", i);
                 printf("**********************************\n");
             }
         }
+        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN3-60v4.nn";
+        saveNetwork(&loadedNN, filename);
     }
-
-
     return 0;
 }
 

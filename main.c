@@ -11,36 +11,61 @@
 void currentStateMNIST(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 void currentState(NeuralNetwork *nn, Matrix* trainingInputs, Matrix* trainingExpected);
 int main() {
-    int example = 2;
+    int example = 0;
     if (example == 1){
-        NeuralNetwork* nn = initNetwork(2, 2, 1, 3);
 
-        Matrix* trainingInput = initMatrix(4,2);
-        setValue(trainingInput, 0, 0, 0);
-        setValue(trainingInput, 0, 1, 0);
+        Matrix *a = initMatrix(1000, 1000);
+        Matrix *b = initMatrix(1000, 1000);
+        Matrix *out = initMatrix(1000, 1000);
 
-        setValue(trainingInput, 1, 0, 0);
-        setValue(trainingInput, 1, 1, 1);
+        Matrix *ga = initMatrix(1000, 1000);
+        Matrix *gb = initMatrix(1000, 1000);
+        randomizeMatrix(a, 0, 10);
+        randomizeMatrix(b, 0, 10);
+        copyInto(a, ga);
+        copyInto(b, gb);
 
-        setValue(trainingInput, 2, 0, 1);
-        setValue(trainingInput, 2, 1, 0);
+        time_t start;
 
-        setValue(trainingInput, 3, 0, 1);
-        setValue(trainingInput, 3, 1, 1);
-        Matrix* trainingAnswers = initMatrix(1, 4);
-
-        setValue(trainingAnswers, 0, 0, 0);
-        setValue(trainingAnswers, 0, 1, 1);
-        setValue(trainingAnswers, 0, 2, 1);
-        setValue(trainingAnswers, 0, 3, 0);
-
-        for (int i = 0; i < 1e6+1; i++) {
-            train(nn, trainingInput, trainingAnswers, .1, 1);
-            if (i%50000 == 0) {
-                currentState(nn,trainingInput, trainingAnswers);
-                printf("************************************************************************************\n");
-            }
+        start = time(NULL);
+        for(int i =0; i< 30; i++) {
+            printf("%i", i);
+            matMultiply(a, b, out);
         }
+        time_t end;
+
+        end = time(NULL);
+        printf("\n%lli", end - start);
+
+
+//        NeuralNetwork* nn = initNetwork(2, 2, 1, 3);
+//
+//        Matrix* trainingInput = initMatrix(4,2);
+//        setValue(trainingInput, 0, 0, 0);
+//        setValue(trainingInput, 0, 1, 0);
+//
+//        setValue(trainingInput, 1, 0, 0);
+//        setValue(trainingInput, 1, 1, 1);
+//
+//        setValue(trainingInput, 2, 0, 1);
+//        setValue(trainingInput, 2, 1, 0);
+//
+//        setValue(trainingInput, 3, 0, 1);
+//        setValue(trainingInput, 3, 1, 1);
+//        Matrix* trainingAnswers = initMatrix(1, 4);
+//
+//        setValue(trainingAnswers, 0, 0, 0);
+//        setValue(trainingAnswers, 0, 1, 1);
+//        setValue(trainingAnswers, 0, 2, 1);
+//        setValue(trainingAnswers, 0, 3, 0);
+//
+//        for (int i = 0; i < 1e6+1; i++) {
+//            train(nn, trainingInput, trainingAnswers, .1, 1);
+//            if (i%50000 == 0) {
+//                currentState(nn,trainingInput, trainingAnswers);
+//                printf("************************************************************************************\n");
+//            }
+//        }
     }
     else{
         srand(time(0));
@@ -58,13 +83,14 @@ int main() {
         Matrix* testInput = initMatrix(lines,784);
         Matrix* testAnswers = initMatrix(10, lines);
         getMnistFileData(testInput, testAnswers,filename);
-//        NeuralNetwork loadedNN;
-//        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN3-60v4.nn";
-//        loadNetwork(&loadedNN, filename);
-//        srand(time(0));
-//        currentStateMNIST(&loadedNN, testInput, testAnswers);
-//        return 0;
+        NeuralNetwork loadedNN;
+        filename = ".\\..\\..\\machine-learning-from-scratch\\NNs\\testNN.nn";
+        loadNetwork(&loadedNN, filename);
+        srand(time(0));
+        currentStateMNIST(&loadedNN, testInput, testAnswers);
+        return 0;
         for (int i = 0; i < 10001; i++) {
+            printf("%i", i);
             train(nn, trainingInput, trainingAnswers, .15, 0 );
             if (i%1000 == 0  ) {
                 currentStateMNIST(nn, testInput, testAnswers);

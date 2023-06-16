@@ -15,8 +15,8 @@ Matrix* initMatrix(int rows, int columns) {
     auto *m = new Matrix();
     m->rows = rows;
     m->columns = columns;
-    m->values = static_cast<double *>(malloc(sizeof(double *) * rows * columns));
-    //cudaMallocHost(&m->values, sizeof(double *) * rows * columns);
+    //m->values = static_cast<double *>(malloc(sizeof(double *) * rows * columns));
+    cudaMallocHost(&m->values, sizeof(double *) * rows * columns);
     for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
         for (int colIndex = 0; colIndex < columns; colIndex++) {
             m->values[rowIndex * columns + colIndex] = 0;
@@ -91,7 +91,7 @@ void matMultiply(Matrix *a, Matrix *b, Matrix *out) {
     int rows = out->rows;
     int cols = out->columns;
 
-    if (0) {
+    if (1) {
         double *gpuMatA;
         double *gpuMatB;
         double *gpuMatOut;
@@ -103,7 +103,7 @@ void matMultiply(Matrix *a, Matrix *b, Matrix *out) {
         cudaMemcpy(gpuMatA, a->values, sizeof(double)*a->rows*a->columns, cudaMemcpyHostToDevice);
         cudaMemcpy(gpuMatB, b->values, sizeof(double)*b->rows*b->columns, cudaMemcpyHostToDevice);
 
-        mat_mul<<<cols, rows>>>(gpuMatA, gpuMatB, gpuMatOut, rows, a->columns, cols);
+        mat_mul<<<1, rows * cols >>>(gpuMatA, gpuMatB, gpuMatOut, rows, a->columns, cols);
 
 
 
@@ -192,8 +192,8 @@ void getRowArr(Matrix *m, int index, double out[]) {
 }
 
 void deleteMatrix(Matrix *m) {
-    //cudaFreeHost(m->values);
-    free(m->values);
+    cudaFreeHost(m->values);
+    //free(m->values);
     free(m);
 }
 
